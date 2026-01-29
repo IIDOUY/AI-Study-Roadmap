@@ -11,6 +11,8 @@ import { generateRoadmap, GenerationInput } from './services/geminiService';
 import { fetchRoadmaps, createRoadmap, updateRoadmap, deleteRoadmap, syncUserProfile } from './services/roadmapService';
 import { supabase } from './services/supabaseClient';
 import { AlertCircle, Star, X, Sparkles, ImageOff, Users } from 'lucide-react';
+import heroImage from './assets/platform-screenshot.png';
+
 
 const MAX_FREE_PROJECTS = 4;
 
@@ -329,7 +331,7 @@ const App: React.FC = () => {
                 <div className="absolute inset-0 top-8 bg-gray-50">
                     {!heroImageError ? (
                         <img 
-                           src="/assets/platform-screenshot.png" 
+                           src={heroImage}
                            alt="Dashboard Preview" 
                            className="w-full h-full object-cover object-left-top"
                            onError={() => setHeroImageError(true)}
