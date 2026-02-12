@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { UserProfile as UserProfileType, Roadmap, ProjectInvitation } from '../types';
 import { 
   X, Moon, Sun, Bell, Clock, LogOut, Layout, Settings as SettingsIcon, 
   FileText, Search, Plus, Trash2, Check, Key, ChevronRight, UserPlus, Inbox, Sparkles, Shield,
   Wallet, BarChart2, PieChart as PieChartIcon, CreditCard, HelpCircle, MessageSquare, Star, Mail,
-  ChevronDown, User, Menu, BrainCircuit, Download, Printer, CheckCircle2
+  ChevronDown, ChevronUp, User, Menu, BrainCircuit, Download, Printer, CheckCircle2, Loader2
 } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { fetchPendingInvitations, respondToInvitation } from '../services/roadmapService';
@@ -447,7 +448,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
                  </div>
                  <div className="flex-1 overflow-hidden">
                     <p className="text-xs font-bold truncate text-gray-900 dark:text-white">{profile?.full_name || 'User'}</p>
-                    <p className="text-[10px] text-gray-400 truncate">{user.email}</p>
+                    <p className="text-sm text-gray-400 truncate">{user.email}</p>
                  </div>
             </div>
         </div>
@@ -686,6 +687,92 @@ const UserProfile: React.FC<UserProfileProps> = ({
                           </div>
                        </div>
                      </>
+                  )}
+
+                  {activeTab === 'notifications' && (
+                    <div className="max-w-3xl mx-auto"> 
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Notifications</h2>
+                        
+                        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden min-h-[50vh]">
+                            {loadingInvites ? (
+                                <div className="flex justify-center py-12">
+                                    <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                                </div>
+                            ) : invitations.length > 0 ? (
+                                <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                                    {invitations.map(invite => {
+                                        const isExpanded = expandedInviteId === invite.id;
+                                        return (
+                                            <div key={invite.id} className="transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-800/30">
+                                                {/* Summary Row */}
+                                                <div 
+                                                    className="p-4 flex items-center justify-between cursor-pointer"
+                                                    onClick={() => setExpandedInviteId(isExpanded ? null : invite.id)}
+                                                >
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                                                                <Mail className="w-4 h-4" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                    Join project <span className="font-bold">"{invite.roadmap_title}"</span>
+                                                                </p>
+                                                                <p className="text-xs text-gray-500">{new Date(invite.added_at).toLocaleDateString()}</p>
+                                                            </div>
+                                                        </div>
+                                                        <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                                            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                                        </button>
+                                                </div>
+
+                                                {/* Expanded Details */}
+                                                {isExpanded && (
+                                                    <div className="px-4 pb-4 pl-[3.25rem] animate-fade-in">
+                                                            <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl space-y-4 border border-gray-100 dark:border-gray-700/50">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-8 h-8 rounded-full bg-white dark:bg-gray-700 border border-gray-100 dark:border-gray-600 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300">
+                                                                        {invite.invited_by?.charAt(0).toUpperCase()}
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="text-xs font-bold text-gray-900 dark:text-white">{invite.invited_by}</p>
+                                                                        <p className="text-xs text-gray-500">{invite.sender_email}</p>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <div className="flex gap-2">
+                                                                    <button 
+                                                                        onClick={() => handleRespondToInvite(invite.id, true)}
+                                                                        className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-bold rounded-lg hover:opacity-90 transition-opacity"
+                                                                    >
+                                                                        Accept
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => handleRespondToInvite(invite.id, false)}
+                                                                        className="px-4 py-2 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs font-bold rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                                                    >
+                                                                        Decline
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-16 text-center">
+                                    <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-2xl flex items-center justify-center text-gray-300 dark:text-gray-600 mb-4">
+                                        <Inbox className="w-8 h-8" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">No new notifications</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">
+                                        You're all caught up! Check back later for project invitations.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                   )}
 
                   {activeTab === 'reports' && (
